@@ -1,0 +1,226 @@
+REGBANK A
+;s0  taken;
+PER_COUNT EQU s1 ;100 is cca 1kHz   255 cca 500Hz
+DUR_COUNT EQU s2 ;duration, how many changes of singal * 255
+WAVE EQU s3
+PORTOUT   EQU  0x01
+PORTIN   EQU  0x00 
+PER_SAVE EQU s4
+; 	PER_SAVE*1026*8E-9=change time
+;	2*change=per
+;	DUR_COUNT*change=duration
+;	
+init:
+	out 0x0,PORTOUT
+	EINT; enable interrupts
+	loop: jump loop
+	
+melody0:;1000; lose, sad melody
+	call tone2low
+	call tone1low
+	call tone1low
+	call tone0
+	call tone0
+	call tone0
+	jump interrupt_done	
+melody1:;0100; WIN jingel
+	LOAD PER_SAVE, 255;3.2ms period
+	LOAD DUR_COUNT, 255;100ms duration
+	call rise_spectrum
+
+;	call tone0w;0.2s  tone0 
+;	call tone5w;0.2s  tone5
+;	call tone6w;0.2s  tone6
+;	call tone7w;0.2s  tone7
+;	call tone3w;0.2s  tone3
+;	call tone2w;0.2s  tone2
+;	call tone3wh;0.1s  tone3
+;	call scil70m;0.07s  scilence
+;	call tone2w;0.2s  tone2
+;	call tone1w;0.2s  tone1
+;	call tone3w;0.2s  tone3
+;	call tone4w;0.2s  tone4
+;	call tone7w;0.2s  tone7
+;	call tone1w;0.2s  tone1
+
+
+	jump interrupt_done
+melody2:;0010, train normal step
+	call tone0_short
+	jump interrupt_done
+melody3:;0001, train diamand taken
+	call tone0_short	
+	call tone3_diamond
+	jump interrupt_done
+;-----------------------------------------WINNER TONES
+tone0w:
+	LOAD PER_SAVE, 255;
+	LOAD DUR_COUNT, 96;
+	CALL COUNT_X_k
+	RET
+tone1w:
+	LOAD PER_SAVE, 233;
+	LOAD DUR_COUNT, 105;
+	CALL COUNT_X_k
+	RET
+tone2w:
+	LOAD PER_SAVE, 211;
+	LOAD DUR_COUNT, 116;
+	CALL COUNT_X_k
+	RET
+tone3w:
+	LOAD PER_SAVE, 189;
+	LOAD DUR_COUNT, 129;
+	CALL COUNT_X_k
+	RET
+tone4w:
+	LOAD PER_SAVE, 167;
+	LOAD DUR_COUNT, 146;
+	CALL COUNT_X_k
+	RET
+tone5w:
+	LOAD PER_SAVE, 145;
+	LOAD DUR_COUNT, 168;
+	CALL COUNT_X_k
+	RET
+tone6w:
+	LOAD PER_SAVE, 123;
+	LOAD DUR_COUNT, 198;
+	CALL COUNT_X_k
+	RET
+tone7w:
+	LOAD PER_SAVE, 101;
+	LOAD DUR_COUNT, 243;
+	CALL COUNT_X_k
+	RET
+tone3wh:
+	LOAD PER_SAVE, 189;
+	LOAD DUR_COUNT, 65;
+	CALL COUNT_X_k
+	RET
+scil70m:
+	LOAD PER_SAVE, 3
+	LOAD DUR_COUNT, 255;
+	CALL scilence
+	RET
+
+;-----------------------------------------LOSE TONES
+tone2low:
+	LOAD PER_SAVE, 195;3.2ms period
+	LOAD DUR_COUNT, 65;100ms duration
+	CALL COUNT_X_k
+	RET
+tone1low:
+	LOAD PER_SAVE, 220;3.6m period
+	LOAD DUR_COUNT, 56;100ms duration
+	CALL COUNT_X_k
+	RET
+tone0:;lower
+	LOAD PER_SAVE, 255; 4.18m period
+	LOAD DUR_COUNT, 50;	100ms duration
+	CALL COUNT_X_k
+	RET
+;------------------------------------------TRAIN STEP TONES
+tone0_short:;lower_short
+	LOAD PER_SAVE, 255;100  4ms period
+	LOAD DUR_COUNT, 10;    20ms duration
+	CALL COUNT_X_k
+	LOAD PER_SAVE, 255;100  4ms period
+	LOAD DUR_COUNT, 30;	63ms duration
+	CALL scilence
+	LOAD PER_SAVE, 200;100  3,28ms period
+	LOAD DUR_COUNT, 13;    21ms duration
+	CALL COUNT_X_k
+	RET
+tone3_diamond:;higher
+	LOAD PER_SAVE, 100; 1.6m period
+	LOAD DUR_COUNT, 15; 12m duration
+	CALL COUNT_X_k
+	RET
+
+
+COUNT_X_k:
+	LOAD PER_COUNT,PER_SAVE
+	LOAD s0, 255
+	delay1k_1: 
+		SUB s0, 1
+		JUMP NZ, delay1k_1
+		LOAD s0, 255 
+		SUB PER_COUNT, 1
+		JUMP NZ, delay1k_1
+	XOR WAVE,16;toogle bit
+	out WAVE,PORTOUT
+	SUB DUR_COUNT, 1;duration counter
+	JUMP NZ, COUNT_X_k ;if still want changes (DUR_COUNT) go, of not return
+	RET
+
+rise_spectrum:
+	LOAD PER_COUNT,PER_SAVE
+	LOAD sA,PER_SAVE
+	LOAD s0, 255	
+	delay1k_1r: 
+		SUB s0, 1
+		JUMP NZ, delay1k_1r
+		LOAD s0, 255 
+		SUB PER_COUNT, 1
+		JUMP NZ, delay1k_1r
+	XOR WAVE,16;toogle bit
+	out WAVE,PORTOUT
+	SUB sA, 1
+	LOAD PER_COUNT, sA
+	SUB DUR_COUNT, 1;duration counter
+	JUMP NZ, delay1k_1r ;if still want changes (DUR_COUNT) go, of not return
+	RET
+fall_spectrum:
+	LOAD PER_COUNT,PER_SAVE
+	LOAD sA,PER_SAVE
+	LOAD s0, 255	
+	delay1k_1f: 
+		SUB s0, 1
+		JUMP NZ, delay1k_1f
+		LOAD s0, 255 
+		SUB PER_COUNT, 1
+		JUMP NZ, delay1k_1f
+	XOR WAVE,16;toogle bit
+	out WAVE,PORTOUT
+	ADD sA, 1
+	LOAD PER_COUNT, sA
+	SUB DUR_COUNT, 1;duration counter
+	JUMP NZ, delay1k_1f ;if still want changes (DUR_COUNT) go, of not return
+	RET
+
+scilence:
+	LOAD PER_COUNT,PER_SAVE
+	LOAD s0, 255
+	delay1k_1_wait: 
+		SUB s0, 1
+		JUMP NZ, delay1k_1_wait
+		LOAD s0, 255 
+		SUB PER_COUNT, 1
+		JUMP NZ, delay1k_1_wait
+	;XOR WAVE,16;toogle bit
+	;out WAVE,PORTOUT
+	SUB DUR_COUNT, 1;duration counter
+	JUMP NZ, scilence ;if still want changes (DUR_COUNT) go, of not return
+	RET	
+
+interrupt_isr:	  
+	in WAVE,PORTIN
+	out WAVE,PORTOUT
+	COMP WAVE, 0x01
+	JUMP Z, melody3
+	COMP WAVE, 0x02
+	JUMP Z, melody2
+	COMP WAVE, 0x04
+	JUMP Z, melody1
+	COMP WAVE, 0x08
+	JUMP Z, melody0	
+	
+interrupt_done:
+	RETI ENABLE	 	   ; Return from interrupt service routine
+				   ; Use RETI to leave interrupts
+
+
+;jumping to the end of memory when interrupt
+ORG 0x3FF
+JUMP interrupt_isr   

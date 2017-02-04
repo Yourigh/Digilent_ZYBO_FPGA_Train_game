@@ -1,0 +1,378 @@
+; OUTput
+   DIN EQU 04
+  DCLK EQU 02
+   POS EQU 08
+    CS EQU 01
+  
+; INput
+ DOUT EQU 00
+ BUSY EQU 01
+
+; Bits of DIN
+	 S EQU s0
+      A2_X EQU s1
+      A2_Y EQU sD
+	A1 EQU s2
+	A0 EQU s3
+      MODE EQU s4
+       SER EQU s5
+       PD1 EQU s6
+       PD0 EQU s7
+       
+      temp EQU s8
+  position EQU s9
+  
+    	UP EQU sB
+      DOWN EQU sC
+       
+       load S, 1
+       load A2_X, 1
+       load A2_Y, 0
+       load A1, 0
+       load A0, 1
+       load MODE, 1
+       load SER, 0
+       load PD1, 0
+       load PD0, 1
+       
+       load sA,0
+       load SB,1
+       load sC,0
+
+EINT
+
+start:
+	out UP, CS
+	jump start
+	
+wait:	
+	fetch sA, 0x00
+	add sA, 1
+	store sA, 0x00
+	COMP sA, 8
+	jump C, wait
+	load sA, 0
+	store sA, 0x00
+	ret
+	
+interrupt_isr:
+
+	load position, 0
+	out DOWN, CS
+	call wait		
+	out DOWN, DCLK
+	call wait
+	out S, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out A2_X, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out A1, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out A0, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out MODE, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out SER, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out PD1, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out PD0, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	call wait
+	call wait
+	
+;busy:	
+;	IN temp, BUSY
+;	COMP temp, 1
+;	jump C, busy
+
+read_X:	
+	load temp, 0
+	out UP,DCLK
+	call wait
+	out DOWN,DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, CS
+	call wait
+	call wait
+	call wait
+	call wait
+	call wait
+	call wait
+	call wait
+	call wait
+	call wait
+	
+Control_Y:
+	
+	out DOWN, CS
+	call wait		
+	out DOWN, DCLK
+	call wait	
+	out S, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out A2_Y, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out A1, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out A0, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out MODE, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out SER, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out PD1, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out PD0, DIN
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	call wait
+	call wait
+	
+read_Y:	
+	load temp, 0
+	out UP,DCLK
+	call wait
+	out DOWN,DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	IN temp, DOUT
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+	IN temp, DOUT
+	XOR position, temp
+	load temp, 0
+	out position, POS
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait	
+	
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	out UP, DCLK
+	call wait
+	out DOWN, DCLK
+	call wait
+	
+
+interrupt_done:
+	RETI ENABLE	 	   ; Return from interrupt service routine
+				   ; Use RETI to leave interrupts
+	
+; **************************************************************
+;	interrupt vector
+; **************************************************************
+	ORG	0x3FF
+	JUMP	interrupt_isr
