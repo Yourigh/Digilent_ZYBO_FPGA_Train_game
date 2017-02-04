@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<project version="2">
+    <versioning>
+        <version></version>
+        <title>my_ROM</title>
+        <comment></comment>
+    </versioning>
+    <processor>
+        <type>Xilinx PicoBlaze family</type>
+        <settings version="1">
+            <picDerivate>4</picDerivate>
+            <clkFreq>0</clkFreq>
+            <memBankSize>1024</memBankSize>
+            <memBankCount>1</memBankCount>
+            <memSharedLoc>1</memSharedLoc>
+            <scrpdSize>64</scrpdSize>
+            <intVector>1023</intVector>
+            <entityName>my_ROM</entityName>
+            <vhdlTemplateFile>../../../../../Users/Lukas/Desktop/Pico Blazer/Simple_pico/ROM_form_7S_2K_14March13.vhd</vhdlTemplateFile>
+            <vhdlOutputFile>../my_ROM1.vhd</vhdlOutputFile>
+            <verilogTemplateFile></verilogTemplateFile>
+            <verilogOutputFile></verilogOutputFile>
+            <memOutputFile></memOutputFile>
+            <hexOutputFile></hexOutputFile>
+        </settings>
+    </processor>
+    <sources>
+        <files>
+            <file>my_ROM.psm</file>
+        </files>
+    </sources>
+    <editor>
+        <loadedFiles>
+            <file>my_ROM.psm</file>
+        </loadedFiles>
+    </editor>
+</project>

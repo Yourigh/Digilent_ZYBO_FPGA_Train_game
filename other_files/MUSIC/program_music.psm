@@ -1,0 +1,117 @@
+REGBANK A
+;s0  taken;
+PER_COUNT EQU s1 ;100 is cca 1kHz   255 cca 500Hz
+DUR_COUNT EQU s2 ;duration, how many changes of singal * 255
+WAVE EQU s3
+PORTOUT   EQU  0x01
+PORTIN   EQU  0x00 
+PER_SAVE EQU s4
+
+init:
+	out 0x0,PORTOUT
+	EINT; enable interrupts
+	loop: jump loop
+	
+melody0:
+	call tone2
+	call tone1
+	call tone0
+	jump interrupt_done	
+melody1:
+	call tone2
+	call wait_half
+	call tone3
+	call tone2
+	call tone3
+	call tone2
+	jump interrupt_done
+melody2:
+	call tone2
+	jump interrupt_done
+melody3:
+	call tone3
+	jump interrupt_done
+
+	
+tone0:;lower
+	LOAD PER_SAVE, 255;100
+	LOAD DUR_COUNT, 50;
+	CALL COUNT_X_k
+	RET
+tone1:
+	LOAD PER_SAVE, 150;100
+	LOAD DUR_COUNT, 85;
+	CALL COUNT_X_k
+	RET
+tone2:
+	LOAD PER_SAVE, 120;100
+	LOAD DUR_COUNT, 106;
+	CALL COUNT_X_k
+	RET
+tone3:;higher
+	LOAD PER_SAVE, 50;100
+	LOAD DUR_COUNT, 255;
+	CALL COUNT_X_k
+	RET
+wait_half:
+	LOAD PER_SAVE, 25;100
+	LOAD DUR_COUNT, 255;
+	CALL scilence
+	RET
+
+
+COUNT_X_k:
+	LOAD PER_COUNT,PER_SAVE
+	LOAD s0, 255
+	delay1k_1: 
+		SUB s0, 1
+		JUMP NZ, delay1k_1
+		LOAD s0, 255 
+		SUB PER_COUNT, 1
+		JUMP NZ, delay1k_1
+	XOR WAVE,16;toogle bit
+	out WAVE,PORTOUT
+	SUB DUR_COUNT, 1;duration counter
+	JUMP NZ, COUNT_X_k ;if still want changes (DUR_COUNT) go, of not return
+	RET
+scilence:
+	LOAD PER_COUNT,PER_SAVE
+	LOAD s0, 255
+	delay1k_1_wait: 
+		SUB s0, 1
+		JUMP NZ, delay1k_1_wait
+		LOAD s0, 255 
+		SUB PER_COUNT, 1
+		JUMP NZ, delay1k_1_wait
+	;XOR WAVE,16;toogle bit
+	;out WAVE,PORTOUT
+	SUB DUR_COUNT, 1;duration counter
+	JUMP NZ, scilence ;if still want changes (DUR_COUNT) go, of not return
+	RET
+
+interrupt_isr:	   
+	in WAVE,PORTIN
+	out WAVE,PORTOUT
+	AND WAVE,7 ;BTN3
+	jump NZ, chk_BTN2
+	jump melody3
+	chk_BTN2:
+	AND WAVE,11 ;BTN2
+	jump NZ, chk_BTN1
+	jump melody2
+	chk_BTN1:
+	AND WAVE,13 ;BTN1
+	jump NZ, chk_BTN0
+	jump melody1
+	chk_BTN0:
+	AND WAVE,14 ;BTN0
+	jump melody0
+	
+interrupt_done:
+	RETI ENABLE	 	   ; Return from interrupt service routine
+				   ; Use RETI to leave interrupts
+
+
+;jumping to the end of memory when interrupt
+ORG 0x3FF
+JUMP interrupt_isr   

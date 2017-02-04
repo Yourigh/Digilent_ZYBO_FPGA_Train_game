@@ -1,0 +1,136 @@
+; OUTput
+   DIN EQU 02
+  DCLK EQU 04
+   POS EQU 08
+    CS EQU 01
+  
+; INput
+ DOUT EQU 00
+ BUSY EQU 01
+
+; Bits of DIN
+	 S EQU s0
+	A2 EQU s1
+	A1 EQU s2
+	A0 EQU s3
+      MODE EQU s4
+       SER EQU s5
+       PD1 EQU s6
+       PD0 EQU s7
+       
+      temp EQU s8
+  position EQU s9
+       
+       load S, 1
+       load A2, 0
+       load A1, 0
+       load A0, 1
+       load MODE, 1
+       load SER, 0
+       load PD1, 0
+       load PD0, 0
+
+EINT
+
+start:
+	out 1, CS
+	jump start
+	
+read:
+	load temp, 0	
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	;out temp, POS
+	out 1, DCLK
+	out 0, DCLK
+	IN temp, DOUT
+	SL0 temp
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	;out temp, POS
+	out 1, DCLK
+	out 0, DCLK
+	IN temp, DOUT
+	SL0 temp
+	XOR position, temp
+	load temp, 0
+	;out temp, POS
+	out 1, DCLK
+	out 0, DCLK
+	IN temp, DOUT
+	XOR position, temp
+	load temp, 0
+	out position, POS
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	
+interrupt_isr:
+	out 0, CS
+	out S, DIN	
+	out 0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out A2, DIN
+	out 1, DCLK
+	out 0, DCLK
+	out A1, DIN
+	out 1, DCLK
+	out 0, DCLK
+	out A0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out MODE, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out SER, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out PD1, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	out PD0, DCLK
+	out 1, DCLK
+	out 0, DCLK
+	IN temp, BUSY
+	COMP temp, 1
+	JUMP Z, read	
+
+interrupt_done:
+	RETI ENABLE	 	   ; Return from interrupt service routine
+				   ; Use RETI to leave interrupts
+	
+; **************************************************************
+;	interrupt vector
+; **************************************************************
+	ORG	0x3FF
+	JUMP	interrupt_isr
